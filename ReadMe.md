@@ -1,8 +1,16 @@
-# FrostedGlass - Windows 11 backdrop on a VCL form
+# FrostedGlass - Windows 11 frosted-glass (Acrylic / Mica) backdrop on a Delphi VCL form
 
-A throwaway test app. It answers one question: can a VCL form, such as the forms of BioniX, show the Windows 11 system backdrop (Mica or Acrylic), and must the VCL style ("skin") be turned off for that?
+A small Delphi VCL demo that puts the Windows 11 frosted-glass backdrop (Acrylic or Mica) on a VCL form, with live switches to test how VCL styles, dark mode, text color and the controls behave on the glass.
 
-Every switch works at run time. The memo at the bottom left shows the Windows build number and the result (HRESULT) of every DWM call; `S_OK` means Windows accepted the call. It does not mean the backdrop is visible - only your eyes can tell that.
+It uses only the documented Windows 11 call `DwmSetWindowAttribute(DWMWA_SYSTEMBACKDROP_TYPE)`. No Windows.UI.Composition, no third-party components.
+
+Every switch works at run time. The memo at the bottom left shows the Windows build number and the result (HRESULT) of every DWM call. `S_OK` means Windows accepted the call; it does not prove the backdrop is visible - only your eyes can tell that.
+
+## Requirements
+
+- Windows 11 build 22621 or newer (older builds ignore the backdrop attribute).
+- Delphi 13 (written and tested with it), Win32.
+- The free LightSaber library (see "Build and run").
 
 ## The switches (left column)
 
@@ -10,19 +18,19 @@ Every switch works at run time. The memo at the bottom left shows the Windows bu
 |---|---|
 | Backdrop | Calls `DwmSetWindowAttribute(Handle, DWMWA_SYSTEMBACKDROP_TYPE, Value, 4)` with Auto (0), None (1), Mica (2), Acrylic (3) or Mica Alt / Tabbed (4). At the first start Acrylic is selected. With no item selected (an INI from an older version) the window keeps the Windows default. |
 | Extend frame into client area (margins -1) | Calls `DwmExtendFrameIntoClientArea` with all four margins = -1 ("sheet of glass"): the frame material may then show in the whole client area. Unchecked = margins 0. |
-| Black client area | Sets the form `Color` to `clBlack` (else `clBtnFace`). GDI black has alpha 0, so with the frame extended the backdrop should show through it. |
+| Black client area | Sets the form `Color` to `clBlack` (else `clBtnFace`). GDI black has alpha 0, so with the frame extended the backdrop shows through it. |
 | Dark mode frame | `DWMWA_USE_IMMERSIVE_DARK_MODE` = 1 or 0. Dark Mica/Acrylic instead of light. |
 | VCL style | "Windows" = no style. The other items are the `.vsf` files in the `Styles` folder next to the EXE (see "Build and run"), loaded with `TStyleManager.LoadFromFile` (once) and `TStyleManager.SetStyle`. With no such folder, the list holds only "Windows". |
-| Style draws the frame (seBorder) / the client (seClient) | Adds or removes the element in the form's `StyleElements`. With a style active, the style paints the title bar and the client area over whatever DWM draws; turning these off lets you see if DWM shows through. |
+| Style draws the frame (seBorder) / the client (seClient) | Adds or removes the element in the form's `StyleElements`. With a style active, the style paints the title bar and the client area over whatever DWM draws; turning these off shows whether DWM shows through. |
 | Text color white | Sets the form `Font.Color` to `clWhite` (else `clWindowText`); every sample control with `ParentFont = True` follows. Tests whether non-black GDI text shows on the glass. |
 | Dark theme for controls | Calls `SetWindowTheme(Handle, 'DarkMode_Explorer', nil)` on every check box and radio button of the sample area, then invalidates it. Unchecked calls `SetWindowTheme(Handle, nil, nil)`. **`DarkMode_Explorer` is NOT documented by Microsoft** - it is the theme name Windows Explorer uses for itself. |
-| VCL GlassFrame (Enabled + SheetOfGlass) | The VCL's own glass support (`TCustomForm.GlassFrame`). It calls `DwmExtendFrameIntoClientArea` with margins -1 by itself AND marks every control with `csGlassPaint` (`TCustomForm.UpdateGlassFrameControls` in the Delphi 13 source file `source\vcl\Vcl.Forms.pas`). With that flag a `TLabel` draws its text composited, with a real alpha (`tfComposited` in `Vcl.StdCtrls.pas`, `TCustomLabel.DoDrawThemeTextEx`), and several controls paint through a buffered paint. Use it instead of "Extend frame", not together with it. |
+| VCL GlassFrame (Enabled + SheetOfGlass) | The VCL's own glass support (`TCustomForm.GlassFrame`). It calls `DwmExtendFrameIntoClientArea` with margins -1 by itself AND marks every control with `csGlassPaint` (`TCustomForm.UpdateGlassFrameControls` in `Vcl.Forms.pas`). With that flag a `TLabel` draws its text composited, with a real alpha (`tfComposited` in `Vcl.StdCtrls.pas`, `TCustomLabel.DoDrawThemeTextEx`), and several controls paint through a buffered paint. Use it instead of "Extend frame", not together with it. |
 
 The whole switch column sits on an opaque panel (`ParentBackground = False`, its own black font), so its captions stay readable whatever you switch.
 
 `TStyleManager.SetStyle` recreates the window handle, and the DWM settings belong to the old handle. The form therefore sets all of them again in its `CreateWnd` override; the memo logs a line `CreateWnd: new handle ...` each time.
 
-The middle column holds typical controls (two panels with `ParentBackground` True and False, button, edit, check box, memo, list box, label). The right column holds a captioned `TRadioGroup` and `TRadioButton`, and the group **"Captions as separate labels"**: check boxes and radio buttons with an EMPTY caption, each with a white transparent `TLabel` beside it; clicking the label works the control. This is the fallback if the themed check box ignores `Font.Color`.
+The middle column holds typical controls (two panels with `ParentBackground` True and False, button, edit, check box, memo, list box, label). The right column holds a captioned `TRadioGroup` and `TRadioButton`, and the group **"Captions as separate labels"**: check boxes and radio buttons with an EMPTY caption, each with a white transparent `TLabel` beside it; clicking the label works the control. This is the fallback when the themed check box ignores `Font.Color`.
 
 ## The see-through window
 
@@ -32,7 +40,7 @@ The main form copies these switches to the see-through window every time you cha
 
 ## Saved state
 
-All switches, the backdrop and the VCL style are saved to the INI file on close (LightSaber `SaveForm`, `asFull`) and restored at the next start. LightSaber restores the controls in `LoadForm` before the form is shown, but it fires a control's `OnClick` only when the saved value differs from the DFM value. So `FormPostInitialize` applies every setting once more from the restored controls; the memo logs `Applying the restored state...` followed by the DWM results.
+All switches, the backdrop and the VCL style are saved to an INI file on close (LightSaber `SaveForm`, `asFull`) and restored at the next start. LightSaber restores the controls in `LoadForm` before the form is shown, but it fires a control's `OnClick` only when the saved value differs from the DFM value. So `FormPostInitialize` applies every setting once more from the restored controls; the memo logs `Applying the restored state...` followed by the DWM results.
 
 ## A suggested order
 
@@ -42,22 +50,18 @@ At the first start, Acrylic, "Extend frame", "Black client area" and "Dark mode 
 2. Check "Extend frame" and "Black client area". Expected: the backdrop shows in the client area too, the controls stay opaque; black text may become invisible.
 3. Pick a VCL style from the `Styles` folder. Then uncheck seBorder and seClient one by one.
 
-## Unknown until you run it
+## Findings (tested 2026-10-04)
 
-- Whether the backdrop shows at all on a VCL form with a VCL style active.
-- Whether a style with `seBorder` on hides the backdrop in the title bar (expected: yes, the style paints its own frame).
-- Whether `seClient` off plus "Black client area" lets the backdrop show with a style active.
-- How each control looks over the backdrop (text drawn in black on black glass may disappear).
-- Whether "Auto" picks anything for a plain Win32 app.
-- Your first run found: with Acrylic + Extend frame + Black client + Dark frame, the captions of check boxes, radio buttons, the radio group, the label and the `ParentBackground = True` panel were invisible.
-
-## Result (Gabriel's test, 2026-10-04)
-
-- Best combination: Acrylic + Extend frame + Dark mode frame + style "Windows" + Text color white + Dark theme for controls + VCL GlassFrame. Black client area OFF.
-- With it, the captions on glass are readable (TLabel, TCheckBox, the `ParentBackground = True` panel).
+- With Acrylic + Extend frame + Black client area + Dark mode frame, the captions of check boxes, radio buttons, the radio group, the label and the `ParentBackground = True` panel are invisible.
+- The best combination found: Acrylic + Extend frame + Dark mode frame + style "Windows" + Text color white + Dark theme for controls + VCL GlassFrame, with Black client area OFF. With it, the captions on glass are readable (TLabel, TCheckBox, the `ParentBackground = True` panel).
 - But the white form font also goes into the controls that paint their own white background (TEdit, TMemo, TListBox): their text becomes white on white, and TMemo / TListBox show black painting bars. Each such control would need its own font color, and GlassFrame does not paint them cleanly.
-- Turning a switch off and on again does not always restore the earlier look (the test app does not undo every step in the right order).
-- Conclusion: the frosted backdrop works well only on an empty window, or in the parts of a window without controls. Not worth adding to BioniX, whose forms are full of controls.
+- Turning a switch off and on again does not always restore the earlier look (the demo does not undo every step in the right order).
+
+**Conclusion:** the frosted backdrop works well on an empty window, or in the parts of a window without controls. On a form full of standard VCL controls it costs more work than it gives.
+
+## Why this demo exists
+
+It was written to decide whether the frosted-glass look could go into [BioniX Wallpaper](https://www.bionixwallpaper.com) - a free wallpaper manager and desktop customization tool for Windows. The forms of BioniX are full of controls, so, per the conclusion above, the effect did not go in. The demo is published so other Delphi developers can skip the same experiment.
 
 ## Sources
 
@@ -67,14 +71,12 @@ At the first start, Acrylic, "Extend frame", "Black client area" and "Dark mode 
 
 ## Build and run
 
-Written and tested with Delphi 13, Win32. It needs Windows 11 build 22621 or newer for the backdrop.
-
 1. Clone the LightSaber library: https://github.com/GabrielOnDelphi/Delphi-LightSaber
 2. Make its units visible to the compiler, in ONE of two ways:
    - Add these three LightSaber folders to the Delphi Library path for Win32 (in Tools > Options): the root folder, `FrameVCL` and `External`.
    - Or define an environment variable `LightSaber` that holds the LightSaber root folder (in Windows, or as an IDE "user override" environment variable in Tools > Options). `FrostedGlass.dproj` reads it as `$(LightSaber)` and adds the same three folders to the project search path. On the command line: `msbuild FrostedGlass.dproj /p:LightSaber=<LightSaber folder>`.
 3. Optional: create a folder `Styles` next to `FrostedGlass.exe` and copy some `.vsf` VCL style files into it. Delphi ships its styles in its `Redist\styles\vcl` folder.
-4. Build and run. The switches are saved on close to an INI file (LightSaber `AppData`) and restored at the next start.
+4. Build and run.
 
 ## License
 
