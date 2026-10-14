@@ -16,6 +16,7 @@ uses
   LightVcl.Visual.AppData,
   LightVcl.Visual.AppDataForm,
   LightCore.AppData,
+  {$IFDEF AUTOPILOT}Autopilot.Bridge.Vcl in 'c:\Projects\Projects AI\Autopilot for Delphi\Source\Bridge\Autopilot.Bridge.Vcl.pas',{$ENDIF}{Optional}
   Vcl.Forms;
 
 {$R *.res}
@@ -29,5 +30,12 @@ begin
   AppData:= TAppData.Create(AppName, '', MultiThreaded);
   Application.MainFormOnTaskbar:= TRUE;
   AppData.CreateMainForm(TfrmMain, asFull);      // asFull: every switch is saved on close and restored at the next start
+
+  { Optional: Via Autopilot, Claude can run/debug/test this program for you.
+    For example, click "Mica (2)" in rgBackdrop & read the result in mmoStatus.
+    Don't have AUTOPILOT? Undefine $AUTOPILOT or get it from www.GabrielMoraru.com }
+  {$IFDEF AUTOPILOT}
+   Autopilot.Bridge.Vcl.StartBridge;
+  {$ENDIF}
   AppData.Run;
 end.

@@ -31,7 +31,7 @@ So: use it on a splash screen, an about box or a mostly empty window. Not on a b
 
 ## Dependencies
 
-[LightSaber](https://github.com/GabrielOnDelphi/Delphi-LightSaber) (free). Written with Delphi 13.
+[LightSaber](https://github.com/GabrielOnDelphi/Delphi-LightSaber) (free). Written with Delphi 13. The Debug build also uses the optional [Autopilot for Delphi](https://gabrielmoraru.com/my-delphi-code/autopilot-for-delphi/) bridge, which lets an AI assistant drive the running app.
 
 ## License
 
