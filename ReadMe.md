@@ -22,7 +22,7 @@ A second window has no controls at all, so you can see the pure effect.
 
 This test  was written to decide whether the frosted look should go into [BioniX Wallpaper](https://www.bionixwallpaper.com), a wallpaper manager for Windows. BioniX's forms are full of controls, so the answer was no. The demo is public so you don't have to run the same experiment :)
 
-Conlusions:  
+Conclusions:  
 - On an empty window (or the empty parts of a window) the effect looks great.
 - On a form full of controls it is a fight. Labels, check boxes and radio buttons lose their captions (black text on black glass). White text fixes them, but then TEdit, TMemo and TListBox show white text on white, and TMemo / TListBox get black painting bars.
 
@@ -32,6 +32,9 @@ So: use it on a splash screen, an about box or a mostly empty window. Not on a b
 ## Dependencies
 
 [LightSaber](https://github.com/GabrielOnDelphi/Delphi-LightSaber) (free). Written with Delphi 13. The Debug build also uses the optional [Autopilot for Delphi](https://gabrielmoraru.com/my-delphi-code/autopilot-for-delphi/) bridge, which lets an AI assistant drive the running app.
+
+## Related work:
+[en.Delphipraxis.net](https://en.delphipraxis.net/topic/12968-vcl-ui-design-challenge-for-delphi-developers-%F0%9F%92%A1/)
 
 ## License
 
