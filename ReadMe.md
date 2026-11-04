@@ -35,6 +35,7 @@ So: use it on a splash screen, an about box or a mostly empty window. Not on a b
 
 ## Related work:
 [en.Delphipraxis.net](https://en.delphipraxis.net/topic/12968-vcl-ui-design-challenge-for-delphi-developers-%F0%9F%92%A1/)
+https://github.com/mausimus/ShaderGlass 
 
 ## License
 
